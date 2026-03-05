@@ -1,0 +1,26 @@
+data = get("demo_data.json")
+print(data)
+
+# Test key => value syntax
+foreach(data as key => value) {
+    print("Key:", key, "Value:", value)
+}
+
+# Test simple as item syntax
+foreach(data as item) {
+    print(item)
+}
+
+# Access specific values
+print(data["message"])
+print(data["data"][0])
+print(data["success"])
+
+# Test if conditions
+if (data["data"][0] == 1) {
+    print("First condition!")
+} else if (data["data"][0] == 2) {
+    print("Second condition!")
+} else {
+    print("Default condition!")
+}
