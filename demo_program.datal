@@ -1,3 +1,10 @@
+# Get data from OpenMeteo API
+weather_data = get("https://api.open-meteo.com/v1/forecast?latitude=52.52&longitude=13.41&hourly=temperature_2m")
+print("Weather data:", weather_data)
+print("Latitude: ", weather_data["latitude"])
+print("Longitude: ", weather_data["longitude"])
+
+# Get data from demo JSON file
 data = get("demo_data.json")
 print(data)
 
