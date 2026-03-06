@@ -1,178 +1,161 @@
 # DataLine Programming Language
 
-Data pipelines oriented programming language. The purpose of it is to make data pipeline creation easier and more maintainable for data scientists, by removing complexity and making code creation more deterministic. It runs python on the backend, which is why it's lightweight and easy to modify. Another strong point is that it doesn't depend on external dependencies - it only uses python's embedded functionalities.
+A lightweight, dependency-free data pipeline language that makes data processing simple and maintainable. DataLine compiles to Python and runs without any external dependencies - just pure Python power!
 
-## Key Characteristics
-- Case-sensitive
-- Comprehensive log file (history.log)
-- Automatic code tree generation (code_tree.md)
-- Automatic flow graph (flow_graph.md)
-- Separated by new lines (no ; at the end of each line)
+## Why DataLine?
 
-## Commands
+- **Simple Syntax**: Clean, readable syntax designed specifically for data workflows
+- **Zero Dependencies**: Uses only Python's built-in libraries - no pip install required!
+- **Data-Focused**: Built-in functions for data retrieval, processing, and storage
+- **Built-in Visualization**: Automatic code trees and flow graphs for understanding your pipelines
+- **Comprehensive Logging**: Detailed execution history for debugging and auditing
 
-## get
+## Quick Start
 
-Get data from file or API. Supports both local files and HTTP endpoints. Automatically parses JSON files and returns parsed objects, otherwise returns raw text content.
-
-**Parameters:**
-- source (string, required) - Path to local file or HTTP URL
-- headers (object, optional) - Custom headers for HTTP requests only
-
-**Examples:**
-```dataline
-# Get data from local JSON file (automatically parsed)
-data = get("data.json")
-
-# Get data from local text file (returns as string)
-content = get("data.csv")
-
-# Get data from API endpoint (automatically parses JSON response)
-api_data = get("https://jsonplaceholder.typicode.com/posts")
-
-# Get data from API with custom headers
-users = get("https://api.example.com/users", headers={"Authorization": "Bearer token123"})
-
-# Get data from API with multiple custom headers
-data = get("https://api.github.com/user", headers={
-    "Authorization": "Bearer ghp_xxx",
-    "User-Agent": "DataLine-App",
-    "Accept": "application/vnd.github.v3+json"
-})
-
-# Get data from API with query parameters
-users = get("https://api.example.com/users?page=1&limit=10")
+### Installation
+```bash
+# No installation needed! Just ensure you have Python 3.6+
+python --version
 ```
 
-**Return Values:**
-- JSON files: Parsed Python dictionary/object
+### Your First DataLine Program
+Create a file called `hello.datal`:
+```dataline
+# Get data from a public API
+weather = get("https://api.open-meteo.com/v1/forecast?latitude=52.52&longitude=13.41&hourly=temperature_2m")
+
+# Display the temperature data
+print("Weather data:", weather)
+print("Current temperature:", weather["hourly"]["temperature_2m"][0], "°C")
+```
+
+### Run Your Program
+```bash
+python dataline.py hello.datal
+```
+
+That's it! You've just created your first data pipeline!
+
+## Core Concepts
+
+### Getting Data (`get`)
+The universal data retrieval function that works with both files and APIs.
+
+```dataline
+# Local files
+data = get("data.json")           # Auto-parses JSON
+text = get("report.txt")          # Returns as string
+
+# API calls
+users = get("https://api.example.com/users")
+api_data = get("https://api.github.com/user", headers={"Authorization": "Bearer token"})
+```
+
+**Parameters:**
+- `source` (string, required) - File path or HTTP URL
+- `headers` (object, optional) - Custom headers for HTTP requests
+
+**Returns:**
+- JSON files: Parsed dictionary
 - Text files: String content
-- HTTP responses: Parsed JSON (if Content-Type is application/json) or raw text
-- Error handling: Returns `None` and logs error if request fails
+- HTTP: Parsed JSON or raw text
+- Errors: `None` with error logged
 
-## send
+### Sending Data (`send`)
+Store or transmit your processed data.
 
-Send data to API endpoint or file. Supports HTTP requests with custom headers and file writing in various formats.
-
-**Parameters:**
-- destination (string, required) - File path or HTTP URL
-- data (any, required) - Data to send
-- payload (any, optional) - Custom payload for HTTP requests (defaults to data)
-- headers (object, optional) - Custom headers for HTTP requests
-
-**Examples:**
 ```dataline
-# Send data to local JSON file (automatically formatted)
-send("output.json", processed_data)
+# Save to files (auto-formatted)
+send("results.json", processed_data)    # JSON format
+send("report.txt", summary)             # Text format
 
-# Send data to local text file
-send("report.txt", "Data processing complete")
-
-# Send data to API endpoint (POST request)
-send("https://api.example.com/data", results)
-
-# Send data to API with custom headers
-send("https://api.example.com/webhook", event_data, headers={"Authorization": "Bearer token123"})
-
-# Send custom payload different from data
-send("https://api.example.com/submit", metadata, payload={"data": actual_data, "meta": metadata})
+# Send to APIs
+send("https://api.example.com/webhook", data, headers={"Content-Type": "application/json"})
 ```
 
-**Return Values:**
-- File operations: `True` on success
-- HTTP requests: HTTP status code (e.g., 200, 201)
-- Error handling: Returns `None` and logs error if request fails
+**Parameters:**
+- `destination` (string, required) - File path or HTTP URL
+- `data` (any, required) - Data to send
+- `headers` (object, optional) - Custom headers for HTTP requests
 
-## print
+**Returns:**
+- Files: `True` on success
+- HTTP: Status code (200, 201, etc.)
+- Errors: `None` with error logged
 
-Output data to console. Can handle multiple arguments and various data types.
+### Database Operations (`query`)
+Built-in database support for multiple database types.
+
+```dataline
+# SQLite (built-in)
+users = query("sqlite:demo_database.db", "SELECT * FROM users WHERE age > 30")
+
+# MySQL, PostgreSQL, MongoDB, Redis (with pip install)
+mysql_data = query("mysql:host=localhost;dbname=test", "SELECT * FROM products")
+```
 
 **Parameters:**
-- ... (any, variadic) - Values to print
+- `connection_string` (string, required) - Database connection details
+- `sql_query` (string, required) - SQL query to execute
 
-**Examples:**
+**Supported Databases:**
+- **SQLite**: Built-in (no installation needed)
+- **MySQL**: `pip install pymysql`
+- **PostgreSQL**: `pip install psycopg2-binary`
+- **MongoDB**: `pip install pymongo`
+- **Redis**: `pip install redis`
+- **Cassandra**: `pip install cassandra-driver`
+- **Elasticsearch**: `pip install elasticsearch`
+
+### Console Output (`print`)
+Display data to console with multiple arguments support.
+
 ```dataline
-# Print single value
+# Single value
 print("Hello World")
 
-# Print multiple values
+# Multiple values
 print("User:", name, "Age:", age)
 
-# Print variables
+# Variables and expressions
 print(data)
-
-# Print expressions
 print("Total items:", count * 2)
 ```
 
-## type
+### Type Checking (`type`)
+Display the type of a variable for debugging.
 
-Display the type of a variable. Useful for debugging and data validation.
-
-**Parameters:**
-- variable (any, required) - Variable to inspect
-
-**Examples:**
 ```dataline
-# Check type of variable
+# Check variable type
+data = get("config.json")
 type(data)  # Output: dict, list, str, int, bool, etc.
 
 # Type checking in conditions
-data = get("config.json")
 if (type(data) == "dict") {
     print("Data is a dictionary")
 }
-
-# Debug variable types
-user = {"name": "John", "age": 30}
-type(user)  # Output: dict
-
-numbers = [1, 2, 3]
-type(numbers)  # Output: list
 ```
 
-## if / else / else if
+### Control Flow
 
-Conditional statements for program flow control. Conditions must be enclosed in parentheses and support boolean logic.
+#### Conditions (`if/else if/else`)
+Conditional statements for program flow control.
 
-**Syntax:**
 ```dataline
-if (condition) {
-    # code block
-} else if (condition) {
-    # code block  
+# Simple conditions
+if (age >= 18) {
+    print("Adult")
 } else {
-    # code block
-}
-```
-
-**Examples:**
-```dataline
-# Simple condition
-if (x > 10) {
-    print("x is greater than 10")
+    print("Minor")
 }
 
-# Complex condition with boolean logic
-if (age >= 18 and has_license == true) {
-    print("Can drive")
-} else if (age >= 16 and has_permit == true) {
-    print("Can drive with supervision")
+# Complex conditions
+if (user_type == "admin" and has_permission == true) {
+    print("Access granted")
+} else if (user_type == "user") {
+    print("Limited access")
 } else {
-    print("Cannot drive")
-}
-
-# Nested conditions
-if (user_type == "admin") {
-    if (permissions["write"] == true) {
-        print("Admin with write access")
-    }
-}
-
-# Type checking
-data = get("api_response.json")
-if (type(data) == "dict" and data["success"] == true) {
-    print("API call successful")
+    print("Access denied")
 }
 ```
 
@@ -181,32 +164,17 @@ if (type(data) == "dict" and data["success"] == true) {
 - Boolean: `and`, `or`, `not`
 - Boolean values: `true`, `false`
 
-### foreach
+#### Loops (`foreach`)
+Loop through arrays or objects.
 
-Loop through arrays or objects. Supports both simple iteration and key-value iteration for dictionaries.
-
-**Syntax:**
 ```dataline
 # Simple iteration
-foreach (collection as item) {
-    # code block
-}
-
-# Key-value iteration (for objects/dictionaries)
-foreach (object as key => value) {
-    # code block
-}
-```
-
-**Examples:**
-```dataline
-# Iterate over array
 numbers = [1, 2, 3, 4, 5]
 foreach (numbers as num) {
     print("Number:", num)
 }
 
-# Iterate over dictionary keys and values
+# Key-value iteration (for objects/dictionaries)
 user = {"name": "John", "age": 30, "city": "NYC"}
 foreach (user as key => value) {
     print(key, ":", value)
@@ -217,73 +185,54 @@ data = get("https://api.example.com/users")
 foreach (data as user) {
     print("User:", user["name"], "Email:", user["email"])
 }
-
-# Nested iteration
-results = get("analytics.json")
-foreach (results as category) {
-    print("Category:", category["name"])
-    foreach (category["items"] as item) {
-        print("  -", item["title"])
-    }
-}
-
-# Transform data during iteration
-processed = []
-foreach (raw_data as entry) {
-    new_entry = {
-        "id": entry["id"],
-        "processed": true,
-        "timestamp": get_current_time()
-    }
-    processed.append(new_entry)
-}
 ```
 
-## Variable Assignment
+#### Functions
+Create reusable functions for complex operations.
 
-Automatic type detection for variables:
-- String: `name = "DataLine"`
-- Number: `age = 25`
-- Boolean: `active = true`
-- Array: `items = [1, 2, 3]`
-- Object: Via get() function or JSON parsing
-
-**Examples:**
 ```dataline
-# String assignment
-name = "John Doe"
+# Define a function
+function calculateTotal(price, quantity, tax_rate) {
+    subtotal = price * quantity
+    tax = subtotal * tax_rate
+    total = subtotal + tax
+    return total
+}
+
+# Use the function
+total = calculateTotal(19.99, 3, 0.08)
+print("Total cost:", total)
+```
+
+### Data Types & Variables
+Automatic type detection for variables:
+
+```dataline
+# String
+name = "DataLine"
 message = 'Hello World'
 
-# Number assignment
-count = 42
+# Number
+age = 25
 price = 19.99
 negative = -10
 
-# Boolean assignment
+# Boolean
 is_valid = true
 has_permission = false
 
-# Array assignment
+# Array
 numbers = [1, 2, 3, 4, 5]
 mixed = ["text", 123, true]
 
-# Object assignment via get()
+# Object (from JSON or created)
 config = get("config.json")
-
-# Complex nested structures
-user_profile = {
-    "name": "John",
-    "age": 30,
-    "preferences": {
-        "theme": "dark",
-        "notifications": true
-    }
-}
+user = {"name": "John", "age": 30}
 ```
 
-## Comments
-
+### Comments
 Comments start with # and are ignored by the interpreter:
+
 ```dataline
 # This is a comment
 data = get("file.json") # This is also a comment
@@ -293,28 +242,21 @@ data = get("file.json") # This is also a comment
 # explaining the data processing logic
 ```
 
-## Code Structure
-
+### Code Style
 - Each statement on a new line (no semicolons)
 - Code blocks use curly braces `{` and `}`
 - Conditions must be enclosed in parentheses `(condition)`
 - Case-sensitive language
 - Indentation recommended for readability (2 spaces per level)
 
-## Complete Examples
+## Real-World Examples
 
 ### Example 1: Data Processing Pipeline
 ```dataline
-# Fetch user data from API with authentication
-users = get("https://jsonplaceholder.typicode.com/users", headers={"User-Agent": "DataLine-App"})
+# Fetch user data from API
+users = get("https://jsonplaceholder.typicode.com/users")
 
-# Fetch data from authenticated API
-api_data = get("https://api.github.com/repos/dataline/lang", headers={
-    "Authorization": "Bearer your_token_here",
-    "Accept": "application/vnd.github.v3+json"
-})
-
-# Process each user
+# Process active users
 active_users = []
 foreach (users as user) {
     if (user["email"] and user["address"]["city"] == "New York") {
@@ -325,154 +267,184 @@ foreach (users as user) {
             "city": user["address"]["city"]
         }
         active_users.append(processed_user)
-        print("Processed user:", user["name"])
+        print("Processed:", user["name"])
     }
 }
 
 # Save results
 send("active_users_nyc.json", active_users)
-print("Total active NYC users:", len(active_users))
+print("Found", len(active_users), "active users in NYC")
 ```
 
-### Example 2: File Processing with Error Handling
+### Example 2: Database Analytics
 ```dataline
-# Load configuration
-config = get("config.json")
-if (config == null) {
-    print("Error: Could not load configuration")
-} else {
-    # Process data files
-    foreach (config["files"] as filename) {
-        data = get(filename)
-        if (type(data) == "dict") {
-            print("Processing:", filename)
-            # Transform data
-            transformed = {
-                "source": filename,
-                "record_count": len(data),
-                "processed_at": "2024-01-01"
-            }
-            send("results.json", transformed)
-        } else {
-            print("Invalid data format in:", filename)
-        }
-    }
-}
-```
+# Query user data from database
+users = query("sqlite:demo_database.db", "SELECT * FROM users WHERE age > 30")
 
-### Example 3: API Integration and Reporting
-```dataline
-# Fetch sales data with authentication
-sales_data = get("https://api.company.com/sales", headers={"Authorization": "Bearer token123"})
-products = get("products.json")
-
-# Generate report
-report = {
-    "total_sales": 0,
-    "top_products": [],
-    "date_range": "2024-01-01 to 2024-12-31"
-}
-
-foreach (sales_data as sale) {
-    report["total_sales"] = report["total_sales"] + sale["amount"]
+# Get their orders
+foreach (users as user) {
+    orders = query("sqlite:demo_database.db", 
+                   "SELECT * FROM orders WHERE user_id = " + user["id"])
     
-    # Find product details
-    foreach (products as product) {
-        if (product["id"] == sale["product_id"]) {
-            sale["product_name"] = product["name"]
-            break
-        }
+    print("User:", user["name"], "Orders:", len(orders))
+    
+    # Calculate total spending
+    total = 0
+    foreach (orders as order) {
+        total = total + order["amount"]
     }
+    print("Total spent:", total)
 }
-
-# Sort and get top 5 products
-if (len(sales_data) > 0) {
-    # Simple sorting logic (would need extension for complex sorting)
-    foreach (sales_data as sale) {
-        if (sale["amount"] > 1000) {
-            report["top_products"].append({
-                "product": sale["product_name"],
-                "amount": sale["amount"]
-            })
-        }
-    }
-}
-
-# Send report to dashboard
-send("dashboard.company.com/reports", report)
-send("sales_report_2024.json", report)
-print("Report generated successfully")
 ```
 
-### Example 4: Data Validation and Cleaning
+### Example 3: API Integration
 ```dataline
-# Load raw data
-raw_data = get("user_submissions.json")
-clean_data = []
-errors = []
+# Get weather data
+weather = get("https://api.open-meteo.com/v1/forecast?latitude=52.52&longitude=13.41&hourly=temperature_2m")
 
-foreach (raw_data as submission) {
-    # Validate required fields
-    if (submission["email"] and submission["name"]) {
-        # Clean and normalize data
-        clean_entry = {
-            "name": submission["name"].strip(),
-            "email": submission["email"].lower().strip(),
-            "age": submission["age"] or 0,
-            "valid": true
-        }
-        
-        # Additional validation
-        if (clean_entry["age"] >= 18 and clean_entry["age"] <= 120) {
-            clean_data.append(clean_entry)
-        } else {
-            errors.append({
-                "type": "invalid_age",
-                "data": clean_entry
-            })
-        }
-    } else {
-        errors.append({
-            "type": "missing_fields",
-            "data": submission
-        })
+# Process temperature data
+temps = weather["hourly"]["temperature_2m"]
+max_temp = 0
+min_temp = 100
+
+foreach (temps as temp) {
+    if (temp > max_temp) {
+        max_temp = temp
+    }
+    if (temp < min_temp) {
+        min_temp = temp
     }
 }
 
-# Save results
-send("clean_users.json", clean_data)
-send("validation_errors.json", errors)
-print("Cleaned", len(clean_data), "valid entries")
-print("Found", len(errors), "validation errors")
+# Create summary
+summary = {
+    "location": "Berlin",
+    "max_temp": max_temp,
+    "min_temp": min_temp,
+    "data_points": len(temps)
+}
+
+# Send to webhook and save locally
+send("https://api.example.com/weather", summary)
+send("weather_summary.json", summary)
+print("Weather analysis complete!")
 ```
 
-## Running the Interpreter
+## Running DataLine
 
-Execute DataLine files from the command line:
-
+### Command Line Options
 ```bash
 # Basic execution
 python dataline.py script.datal
 
-# With log level
-python dataline.py script.datal --level=INFO
+# Control logging verbosity
+python dataline.py script.datal --level=INFO        # Less verbose
+python dataline.py script.datal --level=ERROR       # Only errors
+python dataline.py script.datal --level=NONE        # Silent mode
 
-# Generate code tree and flow graph
-python dataline.py script.datal --generate_code_tree --generate_flow_graph
+# Generate visualizations
+python dataline.py script.datal --generate_code_tree
+python dataline.py script.datal --generate_flow_graph
 
-# Silent mode (no logging)
-python dataline.py script.datal --level=NONE
+# Combined options
+python dataline.py script.datal --level=INFO --generate_code_tree
 ```
 
-## Log Levels
+### Log Levels
+- **ALL**: Show everything (default)
+- **INFO**: Important messages and errors
+- **ERROR**: Only error messages  
+- **NONE**: Silent execution
 
-- **ALL**: Show all log messages (default)
-- **INFO**: Show only informational messages and errors
-- **ERROR**: Show only error messages
-- **NONE**: Disable all logging output
+### Generated Files
+- **history.log**: Detailed execution log with timestamps
+- **filename-code_tree.md**: Hierarchical code structure
+- **filename-flow_graph.md**: Control flow visualization
 
-## Generated Files
+## Database Support
 
-- **history.log**: Comprehensive execution log with timestamps
-- **filename-code_tree.md**: Hierarchical code structure visualization
-- **filename-flow_graph.md**: Control flow graph in Mermaid format
+### Built-in: SQLite
+```dataline
+# No setup required - works out of the box!
+users = query("sqlite:database.db", "SELECT * FROM users")
+```
+
+### Optional Databases (install with pip)
+```bash
+pip install pymysql psycopg2-binary pymongo redis cassandra-driver elasticsearch
+```
+
+```dataline
+# MySQL
+mysql_data = query("mysql:host=localhost;dbname=test", "SELECT * FROM products")
+
+# PostgreSQL  
+postgres_data = query("postgresql:host=localhost;dbname=test", "SELECT * FROM users")
+
+# MongoDB
+mongo_data = query("mongodb://localhost:27017/test", "collection.find()")
+
+# Redis
+redis_data = query("redis://localhost:6379/0", "GET key")
+```
+
+## Debugging Tips
+
+### Check Variable Types
+```dataline
+data = get("api_response.json")
+type(data)  # Shows: dict, list, str, etc.
+```
+
+### Use Logging
+```bash
+# Run with detailed logging
+python dataline.py script.datal --level=ALL
+```
+
+### Generate Code Trees
+```bash
+# See your program structure
+python dataline.py script.datal --generate_code_tree
+```
+
+## Language Reference
+
+### Built-in Functions
+
+| Function | Purpose | Example |
+|----------|---------|---------|
+| `get()` | Retrieve data from files/APIs | `data = get("api.example.com/data")` |
+| `send()` | Save/transmit data | `send("output.json", data)` |
+| `query()` | Database operations | `users = query("sqlite:db.db", "SELECT *")` |
+| `print()` | Console output | `print("Hello", name)` |
+| `type()` | Check variable type | `type(data)` |
+
+### Operators
+- **Comparison**: `==`, `!=`, `>`, `<`, `>=`, `<=`
+- **Boolean**: `and`, `or`, `not`
+- **Arithmetic**: `+`, `-`, `*`, `/`, `%`, `**`
+
+## Contributing
+
+DataLine is open source! We welcome contributions:
+
+1. **Report Issues**: Found a bug? Let us know!
+2. **Feature Requests**: Have ideas? We'd love to hear them!
+3. **Code Contributions**: See the source code and submit pull requests.
+
+## License
+
+MIT License - feel free to use DataLine in your projects!
+
+## Need Help?
+
+- **Check the examples**: Look at `demo_file.datal` for comprehensive examples
+- **Read the logs**: Check `history.log` for detailed execution information
+- **Generate visualizations**: Use `--generate_code_tree` to understand program flow
+
+---
+
+**Happy DataLine coding!**
+
+Remember: DataLine is designed to make data processing simple and enjoyable. No complex setup, no dependency management - just clean, readable data pipelines!
