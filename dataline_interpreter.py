@@ -1,6 +1,5 @@
-# DataLine Programming Language Interpreter
-# Author: Anastasios Bolkas
-# Website: https://anastasios-bolkas.tech
+# DataLine Programming Language Interpreter - Refactored Architecture
+# Author: DataLine Team
 # Version: 1.0
 # Description: A lightweight, dependency-free data pipeline language that compiles to Python
 # License: MIT
@@ -8,7 +7,6 @@
 import sys
 import re
 import json
-import sqlite3
 import urllib.request
 import urllib.parse
 import time
@@ -22,14 +20,48 @@ try:
 except ImportError:
     PSUTIL_AVAILABLE = False
 
-# Database availability constants (missing from original)
-SQLITE_AVAILABLE = True
-MYSQL_AVAILABLE = False
-POSTGRESQL_AVAILABLE = False
-MONGODB_AVAILABLE = False
-REDIS_AVAILABLE = False
-CASSANDRA_AVAILABLE = False
-ELASTICSEARCH_AVAILABLE = False
+# Database availability constants
+try:
+    import sqlite3
+    SQLITE_AVAILABLE = True
+except ImportError:
+    SQLITE_AVAILABLE = False
+
+try:
+    import pymysql
+    MYSQL_AVAILABLE = True
+except ImportError:
+    MYSQL_AVAILABLE = False
+
+try:
+    import psycopg2
+    POSTGRESQL_AVAILABLE = True
+except ImportError:
+    POSTGRESQL_AVAILABLE = False
+
+try:
+    import pymongo
+    MONGODB_AVAILABLE = True
+except ImportError:
+    MONGODB_AVAILABLE = False
+
+try:
+    import redis
+    REDIS_AVAILABLE = True
+except ImportError:
+    REDIS_AVAILABLE = False
+
+try:
+    import cassandra
+    CASSANDRA_AVAILABLE = True
+except ImportError:
+    CASSANDRA_AVAILABLE = False
+
+try:
+    import elasticsearch
+    ELASTICSEARCH_AVAILABLE = True
+except ImportError:
+    ELASTICSEARCH_AVAILABLE = False
 
 # =============================================================================
 # CUSTOM EXCEPTION CLASSES
@@ -652,6 +684,10 @@ def query(database_uri, query_or_collection, filter_dict=None):
 
 def _query_sqlite(db_path, query):
     """Execute SQLite query and return results as list of dictionaries"""
+    if not SQLITE_AVAILABLE:
+        print("Warning: SQLite not available. Please ensure sqlite3 is installed.")
+        return None
+        
     try:
         # Remove leading slash from path and handle relative paths
         if db_path.startswith('/'):
@@ -673,13 +709,13 @@ def _query_sqlite(db_path, query):
         
         conn.close()
         return results
-        
+            
     except Exception as e:
         print(f"SQLite error: {e}")
         print(f"Database path attempted: '{db_path}'")
         return None
 
-def _query_mysql(parsed, query):
+def _query_mysql(self, parsed, query):
     """Execute MySQL query"""
     try:
         import pymysql
