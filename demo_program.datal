@@ -1,21 +1,66 @@
-# Get data from OpenMeteo API
+# DataLine Language Demo - Showcasing All Features
+
+# =============================================================================
+# BASIC DATA OPERATIONS
+# =============================================================================
+
+# Get data from API
 weather_data = get("https://api.open-meteo.com/v1/forecast?latitude=52.52&longitude=13.41&hourly=temperature_2m")
 print("Weather data:", weather_data)
 print("Latitude: ", weather_data["latitude"])
 print("Longitude: ", weather_data["longitude"])
 
-# Get data from demo JSON file
+# Get local data
 data = get("demo_data.json")
-print(data)
+print("Demo data:", data)
 
-# Test key => value syntax
+# =============================================================================
+# REUSABLE FUNCTIONS
+# =============================================================================
+
+# Function with multiple parameters
+function calculateTotal(price, quantity, tax_rate) {
+    subtotal = price * quantity
+    tax = subtotal * (tax_rate / 100)
+    total = subtotal + tax
+    print("Subtotal:", subtotal)
+    print("Tax:", tax)
+    print("Total:", total)
+    return total
+}
+
+# Function with no parameters
+function showWelcome() {
+    print("Welcome to DataLine!")
+    print("This demonstrates reusable functions.")
+}
+
+# Function with array parameter
+function processItems(items) {
+    print("Processing items:")
+    foreach(items as item) {
+        print("  -", item)
+    }
+}
+
+# Call the functions
+print("\n=== Function Examples ===")
+showWelcome()
+total = calculateTotal(19.99, 2, 8.25)
+processItems(data["data"])
+
+# =============================================================================
+# CONTROL FLOW
+# =============================================================================
+
+# Key-value iteration
 foreach(data as key => value) {
     print("Key:", key, "Value:", value)
 }
 
-# Test simple as item syntax
+# Simple iteration
 foreach(data as item) {
-    print(item)
+    print("Item:", item)
 }
 
 # Access specific values
@@ -23,7 +68,7 @@ print(data["message"])
 print(data["data"][0])
 print(data["success"])
 
-# Test if conditions
+# Conditional logic
 if (data["data"][0] == 1) {
     print("First condition!")
 } else if (data["data"][0] == 2) {
@@ -31,3 +76,70 @@ if (data["data"][0] == 1) {
 } else {
     print("Default condition!")
 }
+
+# =============================================================================
+# ARITHMETIC OPERATIONS
+# =============================================================================
+
+# Basic calculations
+x = 10
+y = 7
+z = x + y
+print("x + y =", z)
+
+# Complex arithmetic
+a = 20
+b = 5
+print("a * b =", a * b)
+print("a / b =", a / b)
+print("a - b =", a - b)
+print("a % b =", a % b)
+print("a ** 2 =", a ** 2)
+
+# =============================================================================
+# DATABASE OPERATIONS
+# =============================================================================
+
+print("\n=== Database Queries ===")
+
+# SQLite queries
+users = query("sqlite://demo_database.db", "SELECT * FROM users")
+print("All users:", users)
+
+older_users = query("sqlite://demo_database.db", "SELECT name, age FROM users WHERE age > 30")
+print("Users older than 30:", older_users)
+
+# JOIN operations
+user_orders = query("sqlite://demo_database.db", "SELECT u.name, o.product, o.amount FROM users u JOIN orders o ON u.id = o.user_id")
+print("User orders:", user_orders)
+
+# =============================================================================
+# DATABASE COMPATIBILITY TESTING
+# =============================================================================
+
+print("\n=== Testing All Database Types ===")
+
+# Test all supported databases (will show warnings if not installed)
+mysql_data = query("mysql://user:pass@localhost:3306/testdb", "SELECT COUNT(*) FROM users")
+postgres_data = query("postgresql://user:pass@localhost:5432/testdb", "SELECT version()")
+mongo_data = query("mongodb://localhost:27017/testdb", "users", {"age": {"$gt": 25}})
+redis_data = query("redis://localhost:6379/0", "KEYS", {"pattern": "*"})
+cassandra_data = query("cassandra://localhost:9042/testkeyspace", "SELECT * FROM users")
+es_data = query("elasticsearch://localhost:9200/testindex", "_search", {"query": {"match_all": {}}})
+
+print("MySQL test:", mysql_data)
+print("PostgreSQL test:", postgres_data)
+print("MongoDB test:", mongo_data)
+print("Redis test:", redis_data)
+print("Cassandra test:", cassandra_data)
+print("Elasticsearch test:", es_data)
+
+# =============================================================================
+# OUTPUT OPERATIONS
+# =============================================================================
+
+# Send to file
+send("output.json", data)
+
+# Send to API (example)
+# send("https://api.example.com/data", {"processed": true, "count": len(data["data"])})
