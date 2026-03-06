@@ -1,4 +1,4 @@
-# DataLine Programming Language Interpreter - Refactored Architecture
+# DataLine Programming Language Interpreter
 # Author: DataLine Team
 # Version: 1.0
 # Description: A lightweight, dependency-free data pipeline language that compiles to Python
