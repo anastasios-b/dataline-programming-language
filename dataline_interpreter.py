@@ -155,7 +155,8 @@ class LoggingSystem:
                 log_file.write(log_entry)
             
             # Real-time console feedback
-            print(f"INFO: {info_msg}")
+            if log_level != "NONE":
+                print(f"INFO: {info_msg}")
 
     def log_error(self, error_msg):
         """
@@ -178,7 +179,8 @@ class LoggingSystem:
                 log_file.write(log_entry)
             
             # Immediate error visibility
-            print(f"ERROR: {error_msg}")
+            if log_level != "NONE":
+                print(f"ERROR: {error_msg}")
 
 # =============================================================================
 # CODE VISUALIZATION SYSTEM
@@ -680,7 +682,6 @@ def get(source, headers=None):
                     return json.loads(content)
                 return content
         except Exception as e:
-            print(f"Error fetching {source}: {e}")
             return None
     else:
         # Local file access
@@ -718,7 +719,6 @@ def send(destination, data, payload=None, headers=None):
             with urllib.request.urlopen(req) as response:
                 return response.getcode()
         except Exception as e:
-            print(f"Error sending to {destination}: {e}")
             return None
     else:
         # Local file output with automatic formatting
@@ -768,53 +768,43 @@ def query(database_uri, query_or_collection, filter_dict=None):
         
         if db_type == 'sqlite':
             if not SQLITE_AVAILABLE:
-                print("Warning: SQLite not available. Please ensure sqlite3 is installed.")
                 return None
             # For SQLite, path comes after scheme
             db_path = database_uri[len('sqlite://'):]
             return _query_sqlite(db_path, query_or_collection)
         elif db_type == 'mysql':
             if not MYSQL_AVAILABLE:
-                print("Warning: MySQL not available. Please install: pip install pymysql")
                 return None
             return _query_mysql(parsed, query_or_collection)
         elif db_type == 'postgresql':
             if not POSTGRESQL_AVAILABLE:
-                print("Warning: PostgreSQL not available. Please install: pip install psycopg2-binary")
                 return None
             return _query_postgresql(parsed, query_or_collection)
         elif db_type == 'mongodb':
             if not MONGODB_AVAILABLE:
-                print("Warning: MongoDB not available. Please install: pip install pymongo")
                 return None
             return _query_mongodb(parsed, query_or_collection, filter_dict)
         elif db_type == 'redis':
             if not REDIS_AVAILABLE:
-                print("Warning: Redis not available. Please install: pip install redis")
                 return None
             return _query_redis(parsed, query_or_collection, filter_dict)
         elif db_type == 'cassandra':
             if not CASSANDRA_AVAILABLE:
-                print("Warning: Cassandra not available. Please install: pip install cassandra-driver")
                 return None
             return _query_cassandra(parsed, query_or_collection)
         elif db_type == 'elasticsearch':
             if not ELASTICSEARCH_AVAILABLE:
-                print("Warning: Elasticsearch not available. Please install: pip install elasticsearch")
                 return None
             return _query_elasticsearch(parsed, query_or_collection, filter_dict)
         else:
-            print(f"Error: Unsupported database type '{db_type}'. Supported: sqlite, mysql, postgresql, mongodb, redis, cassandra, elasticsearch")
             return None
             
     except Exception as e:
-        print(f"Database query error: {e}")
         return None
 
 def _query_sqlite(db_path, query):
     """Execute SQLite query and return results as list of dictionaries"""
     if not SQLITE_AVAILABLE:
-        print("Warning: SQLite not available. Please ensure sqlite3 is installed.")
         return None
         
     try:
@@ -840,8 +830,6 @@ def _query_sqlite(db_path, query):
         return results
             
     except Exception as e:
-        print(f"SQLite error: {e}")
-        print(f"Database path attempted: '{db_path}'")
         return None
 
 def _query_mysql(self, parsed, query):
@@ -850,15 +838,10 @@ def _query_mysql(self, parsed, query):
         import pymysql
         # Extract connection details from parsed URI
         # Implementation would go here
-        print("MySQL support is available but not fully implemented")
-        print(f"Would execute: {query}")
-        print(f"Connection: {parsed.netloc}")
         return []
     except ImportError:
-        print("Warning: MySQL not available. Please install: pip install pymysql")
         return None
     except Exception as e:
-        print(f"MySQL error: {e}")
         return None
 
 def _query_postgresql(parsed, query):
@@ -867,15 +850,10 @@ def _query_postgresql(parsed, query):
         import psycopg2
         # Extract connection details from parsed URI
         # Implementation would go here
-        print("PostgreSQL support is available but not fully implemented")
-        print(f"Would execute: {query}")
-        print(f"Connection: {parsed.netloc}")
         return []
     except ImportError:
-        print("Warning: PostgreSQL not available. Please install: pip install psycopg2-binary")
         return None
     except Exception as e:
-        print(f"PostgreSQL error: {e}")
         return None
 
 def _query_mongodb(parsed, collection_name, filter_dict):
@@ -884,16 +862,10 @@ def _query_mongodb(parsed, collection_name, filter_dict):
         import pymongo
         # Extract connection details from parsed URI
         # Implementation would go here
-        print("MongoDB support is available but not fully implemented")
-        print(f"Would query collection: {collection_name}")
-        print(f"Filter: {filter_dict}")
-        print(f"Connection: {parsed.netloc}")
         return []
     except ImportError:
-        print("Warning: MongoDB not available. Please install: pip install pymongo")
         return None
     except Exception as e:
-        print(f"MongoDB error: {e}")
         return None
 
 def _query_redis(parsed, operation, filter_dict):
@@ -902,16 +874,10 @@ def _query_redis(parsed, operation, filter_dict):
         import redis
         # Extract connection details from parsed URI
         # Implementation would go here
-        print("Redis support is available but not fully implemented")
-        print(f"Would execute: {operation}")
-        print(f"Filter: {filter_dict}")
-        print(f"Connection: {parsed.netloc}")
         return []
     except ImportError:
-        print("Warning: Redis not available. Please install: pip install redis")
         return None
     except Exception as e:
-        print(f"Redis error: {e}")
         return None
 
 def _query_cassandra(parsed, query):
@@ -920,15 +886,10 @@ def _query_cassandra(parsed, query):
         import cassandra
         # Extract connection details from parsed URI
         # Implementation would go here
-        print("Cassandra support is available but not fully implemented")
-        print(f"Would execute: {query}")
-        print(f"Connection: {parsed.netloc}")
         return []
     except ImportError:
-        print("Warning: Cassandra not available. Please install: pip install cassandra-driver")
         return None
     except Exception as e:
-        print(f"Cassandra error: {e}")
         return None
 
 def _query_elasticsearch(parsed, operation, filter_dict):
@@ -937,17 +898,12 @@ def _query_elasticsearch(parsed, operation, filter_dict):
         import elasticsearch
         # Extract connection details from parsed URI
         # Implementation would go here
-        print("Elasticsearch support is available but not fully implemented")
-        print(f"Would execute: {operation}")
-        print(f"Filter: {filter_dict}")
-        print(f"Connection: {parsed.netloc}")
         return []
     except ImportError:
-        print("Warning: Elasticsearch not available. Please install: pip install elasticsearch")
         return None
     except Exception as e:
-        print(f"Elasticsearch error: {e}")
         return None
+
 '''
 
 # =============================================================================
@@ -1326,9 +1282,7 @@ class DataLineInterpreter:
             exec_globals = {}
             exec(code, exec_globals)
             
-            # Debug information
-            if log_level != "NONE":
-                self.logger.log_info(f"Exec globals keys: {list(exec_globals.keys())}")
+            # Debug information removed
             
             # Generate optional visualization outputs
             if should_generate_code_tree:
@@ -1354,15 +1308,12 @@ class DataLineInterpreter:
                 end_time = time.time()
                 execution_time = end_time - start_time
                 self.logger.log_info(f"Execution completed in {execution_time:.3f} seconds")
-                print(f"⏱️  Execution time: {execution_time:.3f} seconds")
             
             if should_track_usage and start_cpu and start_memory and PSUTIL_AVAILABLE:
                 end_cpu = psutil.cpu_percent()
                 end_memory = psutil.virtual_memory().percent
                 self.logger.log_info(f"Final CPU usage: {end_cpu}%")
                 self.logger.log_info(f"Final RAM usage: {end_memory}%")
-                print(f"📊 CPU usage: {end_cpu}% (start: {start_cpu}%)")
-                print(f"💾 RAM usage: {end_memory}% (start: {start_memory}%)")
             
             return True
             
